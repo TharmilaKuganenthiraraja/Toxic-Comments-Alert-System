@@ -7,16 +7,34 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Submit Your Comment</h1>
-        <form id="commentForm">
-            <textarea id="comment" placeholder="Enter your comment here..."></textarea>
-            <button type="submit">Submit</button>
-        </form>
-        <div id="responseMessage">
-            <!-- Response message will be displayed here -->
+    <header>
+        <div class="container">
+            <h1>Submit Your Comment</h1>
         </div>
+    </header>
+
+      <!-- Image Section -->
+      <div class="image-container">
+        <img src="{{ url_for('static', filename='comment_image.jpg') }}" alt="Comment Section Image">
     </div>
+
+    <main>
+        <div class="container">
+            <form id="commentForm" class="form">
+                <textarea id="comment" placeholder="Enter your comment here..." rows="6"></textarea>
+                <button type="submit" class="btn">Submit</button>
+            </form>
+            <div id="responseMessage" class="response-message">
+                <!-- Response message will be displayed here -->
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Toxic Comment System. All rights reserved.</p>
+        </div>
+    </footer>
 
     <script>
         document.getElementById('commentForm').addEventListener('submit', function(event) {
@@ -34,6 +52,7 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('responseMessage').innerText = data.result;
+                document.getElementById('responseMessage').style.color = data.toxic ? 'red' : 'green';
                 document.getElementById('comment').value = ''; // Clear the textarea
             })
             .catch(error => {
