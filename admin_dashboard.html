@@ -4,29 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Admin Dashboard</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Comment</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for comment in comments %}
-                    <tr>
-                        <td>{{ comment.timestamp }}</td>
-                        <td>{{ comment.comment }}</td>
-                        <td>{{ 'Toxic' if comment.toxic else 'Not Toxic' }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <header>
+        <div class="container">
+            <h1>Admin Dashboard</h1>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar for admin menu -->
+        <aside class="sidebar">
+            <h2>Admin Menu</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/admin">Dashboard</a></li>
+                <li><a href="/">User Profile</a></li>
+                <li><a href="/admin">Maps</a></li>
+                <li><a href="/notifications">Notifications <span class="badge badge-danger" id="notification-count">0</span></a></li>
+                <!-- You can add more links to the sidebar here -->
+            </ul>
+        </aside>
+
+        <main >
+            <div class="container">
+                <!-- Filter buttons for comments -->
+                <div class="filter-buttons">
+                    <button onclick="filterComments('all')">All Comments</button>
+                    <button onclick="filterComments('toxic')">Toxic Comments</button>
+                    <button onclick="filterComments('non-toxic')">Non-Toxic Comments</button>
+                </div>
+
+                <!-- Scrollable comments table -->
+                <div class="table-container">
+                    <table id="comments-table">
+                        <thead>
+                            <tr>
+                                <th>Comment</th>
+                                <th>Status</th>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comment in comments %}
+                            <tr class="{{ 'toxic' if comment.toxic else 'non-toxic' }}" data-id="{{ comment.id }}">
+                                <td>{{ comment.comment }}</td>
+                                <td>{{ 'Toxic' if comment.toxic else 'Not Toxic' }}</td>
+                                <td>{{ comment.timestamp }}</td>
+                                <td>
+                                    <button onclick="deleteComment({{ comment.id }})">Delete</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
+    <script>
+        $(document).ready(function () {
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').toggleClass('active');
+                $('#content').toggleClass('active');
+            });
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
