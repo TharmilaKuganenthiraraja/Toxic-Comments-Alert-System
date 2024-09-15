@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toxic Comment Notifications</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='notifications.css') }}">
+</head>
+<body>
+
+<div class="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar" class="bg-purple">
+        <div class="sidebar-header">
+            <h3>Admin Dashboard</h3>
+        </div>
+        <ul class="list-unstyled components">
+            <li>
+                <a href="/admin">Home</a>
+            </li>
+            <li>
+                <a href="/notifications">Notifications</a>
+            </li>
+            <!-- Additional menu items can be added here -->
+        </ul>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <button type="button" id="sidebarCollapse" class="btn btn-info">
+                    <i class="fas fa-align-left"></i>
+                    <span>Toggle Sidebar</span>
+                </button>
+            </div>
+        </nav>
+
+        <div class="container">
+            <!-- Notification Section -->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>Toxic Comment Notifications</h4>
+                    <ul id="notification-list" class="list-group">
+                        {% for comment in toxic_comments %}
+                            <li class="list-group-item">
+                                <strong>{{ comment.timestamp }}:</strong> {{ comment.comment }}
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">No toxic comments found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+<script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>
