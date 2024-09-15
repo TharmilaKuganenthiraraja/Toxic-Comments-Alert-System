@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 import logging
 import os
+import pytz
 
 
 app = Flask(__name__)
@@ -17,14 +18,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize the database and mail services
 db = SQLAlchemy(app)
 mail = Mail(app)
-
-# Flask-Mail configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'tharmila9746@gmail.com'  # Your Gmail
-app.config['MAIL_PASSWORD'] = 'Dharmi_p@2016'  # Gmail app password or actual password
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
 
 
 # Load the model and vectorizer
@@ -40,6 +33,7 @@ class Comment(db.Model):
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
     toxic = db.Column(db.Boolean, nullable=False)
     resolved = db.Column(db.Boolean, default=False)
+
 
 # Define the Admin model
 class Admin(db.Model):
@@ -66,21 +60,7 @@ def admin_dashboard():
     comments = Comment.query.all()
     return render_template('admin_dashboard.html', comments=comments)
 
-# Function to send email alert
-def send_email_alert(comment_text):
-    try:
-        msg = Message(
-            'Toxic Comment Alert',
-            sender='piranatharmi@gmail.com', 
-            recipients=['tharmila@gmail.com']  # Admin email to receive notifications
-        )
-        msg.body = f'Toxic comment detected: {comment_text}'
-        mail.send(msg)
-        print("Email alert sent successfully!")
-    except Exception as e:
-        logging.error(f"Failed to send email: {e}")
-        print(f"Error: {e}")
-        
+       
 @app.route('/submit_comment', methods=['POST'])
 def submit_comment():
     data = request.get_json()
@@ -97,11 +77,7 @@ def submit_comment():
     comment = Comment(comment=comment_text, toxic=is_toxic)
     db.session.add(comment)
     db.session.commit()
-    
-     # If the comment is toxic, send an email alert
-    if is_toxic:
-        send_email_alert(comment_text)
-        
+            
     return jsonify({'result': 'Comment submitted successfully!', 'toxic': is_toxic})
 
 
@@ -117,22 +93,11 @@ hashed_password = generate_password_hash('PT2024')
 print(hashed_password)
 
 
-# Function to send email alert
-def send_email_alert(comment_text):
-    msg = Message('Toxic Comment Alert', sender='tharmila9746@gmail.com', recipients=['tharmila9746@gmail.com'])
-    msg.body = f'Toxic comment detected: {comment_text}'
-    mail.send(msg)
-# Mock database query (replace this with a real database call)
-toxic_comments = [
-    {"id": 1, "comment": "This is a toxic comment!", "timestamp": "2024-09-15 12:45"},
-    {"id": 2, "comment": "Another bad comment.", "timestamp": "2024-09-15 13:00"}
-]
-
 @app.route('/get_toxic_comments', methods=['GET'])
 def get_toxic_comments():
     toxic_comments = Comment.query.filter_by(toxic=True).all()  # Assuming you have a 'Comment' model
     result = [
-        {"comment": comment.text, "timestamp": comment.timestamp}
+        {"comment": comment.comment, "timestamp": comment.timestamp}
         for comment in toxic_comments
     ]
     return jsonify(result)
@@ -140,7 +105,43 @@ def get_toxic_comments():
 
 @app.route('/notifications')
 def notifications():
+    # Query the database for all comments
+    comments_from_db = Comment.query.all()
+
+    # Sri Lanka time zone
+    sri_lanka_tz = pytz.timezone('Asia/Colombo')
+
+    # Create a list of toxic comments with timestamps converted to Sri Lanka time
+    toxic_comments = []
+    
+    for comment in comments_from_db:
+        if comment.timestamp:
+            # Assuming comment.timestamp is a datetime object
+            utc_timestamp = comment.timestamp
+            sri_lanka_time = utc_timestamp.astimezone(sri_lanka_tz)
+        else:
+            sri_lanka_time = None  # Handle cases where timestamp is None or invalid
+        
+        toxic_comments.append({
+            'id': comment.id,
+            'comment': comment.comment,
+            'timestamp': sri_lanka_time
+        })
+
     return render_template('notifications.html', toxic_comments=toxic_comments)
+
+@app.route('/notifications_count', methods=['GET'])
+def notifications_count():
+    # Query for unresolved toxic comments
+    toxic_count = Comment.query.filter_by(toxic=True, resolved=False).count()
+    return render_template('notifications.html', count=toxic_count)
+
+@app.route('/resolve_comment/<int:id>', methods=['POST'])
+def resolve_comment(id):
+    comment = Comment.query.get_or_404(id)
+    comment.resolved = True
+    db.session.commit()
+    return render_template({'notifications.html': 'Comment marked as resolved!'})
 
 if __name__ == '__main__':
     app.run(debug=True)
