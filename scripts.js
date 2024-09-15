@@ -21,6 +21,7 @@ function deleteComment(commentId) {
         console.log('Deletion canceled');
     }
 }
+
 function filterComments(filterType) {
     // Get all rows in the comments table
     const rows = document.querySelectorAll('#comments-table tbody tr');
@@ -41,14 +42,15 @@ function filterComments(filterType) {
         }
     });
 }
+
 function updateNotifications() {
     fetch('/get_toxic_comments')
     .then(response => response.json())
     .then(data => {
         let notificationCount = data.length;
-        document.getElementById('notification-count').textContent = notificationCount;
+        document.getElementById('notifications-count').textContent = notificationCount;
 
-        let notificationList = document.getElementById('notification-list');
+        let notificationList = document.getElementById('notifications-list');
         notificationList.innerHTML = '';  // Clear the list
 
         data.forEach(comment => {
@@ -70,5 +72,25 @@ $(document).ready(function () {
         $('#sidebar').toggleClass('active');
         $('#content').toggleClass('active');
     })
-});       
+}); 
+
+function updateNotificationsCount() {
+    $.ajax({
+        url: '/notifications_count',
+        type: 'GET',
+        success: function (data) {
+            $('#notifications-count').text(data.count);
+            updateNotifications(); // Call this function to update the list
+        },
+        error: function () {
+            console.error("Error fetching notifications count.");
+        }
+    });
+}
+
+// Call the function every 30 seconds to check for new notifications
+setInterval(updateNotificationsCount, 60000);
+
+// Fetch notification count on page load
+updateNotificationsCount();      
 
